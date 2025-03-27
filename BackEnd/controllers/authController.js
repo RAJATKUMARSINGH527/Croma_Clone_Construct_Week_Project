@@ -31,24 +31,24 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-    // console.log("Login request received:", req.body); // ✅ Log request data
+    console.log("Login request received:", req.body); // ✅ Log request data
 
     const { email, password } = req.body;
     try {
       const matchingUser = await UserModel.findOne({ email });
   
       if (!matchingUser) {
-        // console.log("User not found!");  // ✅ Log this
+        console.log("User not found!");  // ✅ Log this
         return res.status(404).json({ message: "User not found!" });
       }
   
       const isPasswordMatched = await bcrypt.compare(password, matchingUser.password);
       if (!isPasswordMatched) {
-        // console.log("Invalid email or password!");  // ✅ Log this
+        console.log("Invalid email or password!");  // ✅ Log this
         return res.status(400).json({ message: "Invalid email or password!" });
       }
       
-      // console.log("Generating Token..."); // ✅ Log this
+      console.log("Generating Token..."); // ✅ Log this
 
       const token = jwt.sign(
         { userId: matchingUser._id },
@@ -56,11 +56,11 @@ exports.login = async (req, res) => {
         { expiresIn: "1h" }
       );
   
-      // console.log("Login successful! Token generated:", token);  // ✅ Log token
+      console.log("Login successful! Token generated:", token);  // ✅ Log token
       return res.status(200).json({ message: "You have been Successfully Logged in!", token });
   
     } catch (err) {
-      // console.error("Error during login:", err);  // ✅ Log errors
+      console.error("Error during login:", err);  // ✅ Log errors
       return res.status(500).json({ message: "Internal server error", error: err.message });
     }
 };
