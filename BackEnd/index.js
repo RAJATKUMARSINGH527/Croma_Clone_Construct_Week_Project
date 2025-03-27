@@ -19,7 +19,7 @@ app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = [
       "http://localhost:5173", // Local development
-      "https://too-yum-recipe-full-stack-website.vercel.app", // Production frontend
+      "https://croma-clone-construct-week-project.vercel.app", // Production frontend
     ];
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
