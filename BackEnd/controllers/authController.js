@@ -1,90 +1,257 @@
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const UserModel = require("../models/userModel");
+// const bcrypt = require("bcrypt");
+// const jwt = require("jsonwebtoken");
+// const { UserModel } = require("../models/userModel");
+// const twilio = require("twilio");
+// require("dotenv").config();
+
+// // Configure Twilio
+// const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
+// const twilioServiceId = process.env.TWILIO_SERVICE_ID;
+
+// // Email validation function
+// const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+// // Phone validation function
+// const isValidPhone = (phone) => /^\d{10}$/.test(phone);
+
+// // Step 1: Check Email (No Registration Check)
+// exports.checkEmail = async (req, res) => {
+//     try {
+//         const { email } = req.body;
+//         if (!email || !isValidEmail(email)) {
+//             return res.status(400).json({ message: "Invalid email format." });
+//         }
+//         res.status(200).json({ message: "Email submitted. Proceed to phone verification." });
+//     } catch (error) {
+//         console.error("Error submitting email:", error);
+//         res.status(500).json({ message: "Error submitting email", error: error.message });
+//     }
+// };
+
+// // Step 2: Submit Phone Number
+// exports.submitPhoneNumber = async (req, res) => {
+//     try {
+//         const { phoneNumber } = req.body;
+//         if (!phoneNumber || !isValidPhone(phoneNumber)) {
+//             return res.status(400).json({ message: "Invalid phone number format." });
+//         }
+//         res.status(200).json({ message: "Phone number submitted. Proceed to OTP verification." });
+//     } catch (error) {
+//         console.error("Error submitting phone number:", error);
+//         res.status(500).json({ message: "Error submitting phone number", error: error.message });
+//     }
+// };
+
+// // Step 3: Send OTP via Twilio Verify
+// exports.sendOTP = async (req, res) => {
+//     try {
+//         const { phoneNumber } = req.body;
+//         if (!phoneNumber || !isValidPhone(phoneNumber)) {
+//             return res.status(400).json({ message: "Invalid phone number format." });
+//         }
+//         console.log(`Sending OTP to: +91${phoneNumber}`); // Log the phone number being used for OTP
+//         // Check if the phone number is already registered
+//         await twilioClient.verify.v2.services(twilioServiceId)
+//             .verifications.create({ to: `+91${phoneNumber}`, channel: "sms" });
+//         res.status(200).json({ message: "OTP sent to phone." });
+//     } catch (error) {
+//         console.error("Error sending OTP:", error);
+//         res.status(500).json({ message: "Error sending OTP", error: error.message });
+//     }
+// };
+
+// // Step 4: Verify OTP
+// exports.verifyOTP = async (req, res) => {
+//     try {
+//         const { phoneNumber, otp } = req.body;
+//         if (!phoneNumber || !isValidPhone(phoneNumber) || !otp) {
+//             return res.status(400).json({ message: "Invalid phone number or OTP." });
+//         }
+//         const verification_check = await twilioClient.verify.v2.services(twilioServiceId)
+//             .verificationChecks.create({ to: `+91${phoneNumber}`, code: otp });
+//         if (verification_check.status === "approved") {
+//             return res.status(200).json({ message: "OTP verified successfully." });
+//         }
+//         res.status(400).json({ message: "Invalid OTP." });
+//     } catch (error) {
+//         console.error("Error verifying OTP:", error);
+//         res.status(500).json({ message: "Error verifying OTP", error: error.message });
+//     }
+// };
+
+// // Get All Users (Admin Route)
+// exports.getAllUsers = async (req, res) => {
+//     try {
+//         const users = await UserModel.find({}, "-password");
+//         res.status(200).json(users);
+//     } catch (error) {
+//         console.error("Error fetching users:", error);
+//         res.status(500).json({ message: "Error fetching users", error: error.message });
+//     }
+// };
+
+// // Get User by ID
+// exports.getUserById = async (req, res) => {
+//     try {
+//         const user = await UserModel.findById(req.params.id, "-password");
+//         if (!user) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+//         res.status(200).json(user);
+//     } catch (error) {
+//         console.error("Error fetching user:", error);
+//         res.status(500).json({ message: "Error fetching user", error: error.message });
+//     }
+// };
+
+const { UserModel } = require("../models/userModel");
+const twilio = require("twilio");
 require("dotenv").config();
 
-exports.register = async (req, res) => {
+// Configure Twilio
+const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
+const twilioServiceId = process.env.TWILIO_SERVICE_ID;
+
+// Email validation function
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+// Phone validation function
+const isValidPhone = (phone) => /^\d{10}$/.test(phone);
+
+/**
+ * ✅ Step 1: Check Email (No Registration Check)
+ */
+exports.checkEmail = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
-        //environment variables always return string so we need to convert it to number
-        bcrypt.hash(
-          password,
-          Number(process.env.SALT_ROUNDS),
-          async (err, hash) => {
-            if (err) {
-              res.json({ err });
+        const { email } = req.body;
+        console.log("📩 Checking email:", email);
+
+        if (!email || !isValidEmail(email)) {
+            return res.status(400).json({ message: "Invalid email format." });
+        }
+
+        res.status(200).json({ message: "Email submitted. Proceed to phone verification." });
+    } catch (error) {
+        console.error("❌ Error submitting email:", error);
+        res.status(500).json({ message: "Error submitting email", error: error.message });
+    }
+};
+
+/**
+ * ✅ Step 2: Submit Phone Number
+ */
+exports.submitPhoneNumber = async (req, res) => {
+    try {
+        const { phoneNumber } = req.body;
+        console.log("📞 Submitting phone number:", phoneNumber);
+
+        if (!phoneNumber || !isValidPhone(phoneNumber)) {
+            return res.status(400).json({ message: "Invalid phone number format." });
+        }
+
+        res.status(200).json({ message: "Phone number submitted. Proceed to OTP verification." });
+    } catch (error) {
+        console.error("❌ Error submitting phone number:", error);
+        res.status(500).json({ message: "Error submitting phone number", error: error.message });
+    }
+};
+
+/**
+ * ✅ Step 3: Send OTP via Twilio Verify
+ */
+exports.sendOTP = async (req, res) => {
+    try {
+        const { phoneNumber } = req.body;
+        console.log("📲 Sending OTP to:", phoneNumber);
+
+        if (!phoneNumber || !isValidPhone(phoneNumber)) {
+            return res.status(400).json({ message: "Invalid phone number format." });
+        }
+
+        const response = await twilioClient.verify.v2.services(twilioServiceId)
+            .verifications.create({ to: `+91${phoneNumber}`, channel: "sms" });
+
+        console.log("✅ OTP Sent Response:", response);
+        res.status(200).json({ message: "OTP sent successfully." });
+    } catch (error) {
+        console.error("❌ Error sending OTP:", error);
+        res.status(500).json({ message: "Error sending OTP", error: error.message });
+    }
+};
+
+/**
+ * ✅ Step 4: Verify OTP & Register/Update User
+ */
+exports.verifyOTP = async (req, res) => {
+    try {
+        const { phoneNumber, otp, email } = req.body;
+        console.log("🔍 Verifying OTP for:", { phoneNumber, otp, email });
+
+        // Validate input
+        if (!phoneNumber || !isValidPhone(phoneNumber) || !otp || !email || !isValidEmail(email)) {
+            return res.status(400).json({ message: "Invalid phone number, OTP, or email." });
+        }
+
+        // Verify OTP using Twilio
+        const verification_check = await twilioClient.verify.v2.services(twilioServiceId)
+            .verificationChecks.create({ to: `+91${phoneNumber}`, code: otp });
+
+        console.log("✅ Twilio Verification Response:", verification_check);
+
+        if (verification_check.status !== "approved") {
+            return res.status(400).json({ message: "Invalid OTP. Please try again." });
+        }
+
+        // Find user by phone number
+        let user = await UserModel.findOne({ phoneNumber });
+
+        if (!user) {
+            // Create new user if not exists
+            user = new UserModel({ email, phoneNumber, isVerified: true });
+        } else {
+            // Update existing user
+            user.isVerified = true;
+
+            // Update email only if provided and different
+            if (user.email !== email) {
+                user.email = email;
             }
-            const user = new UserModel({ username, email, password: hash });
-            await user.save();
-            res
-              .status(201)
-              .send({
-                message: "You have been Successfully Registered!",
-                user: user,
-              });
-          }
-        );
-      } catch (err) {
-        console.log("Error during registration:", err); // 
-        res.status(400).json({ message: "Error during registration", error: err.message });
-      }
-};
+        }
 
-exports.login = async (req, res) => {
-    console.log("Login request received:", req.body); // ✅ Log request data
+        await user.save();
 
-    const { email, password } = req.body;
-    try {
-      const matchingUser = await UserModel.findOne({ email });
-  
-      if (!matchingUser) {
-        console.log("User not found!");  // ✅ Log this
-        return res.status(404).json({ message: "User not found!" });
-      }
-  
-      const isPasswordMatched = await bcrypt.compare(password, matchingUser.password);
-      if (!isPasswordMatched) {
-        console.log("Invalid email or password!");  // ✅ Log this
-        return res.status(400).json({ message: "Invalid email or password!" });
-      }
-      
-      console.log("Generating Token..."); // ✅ Log this
-
-      const token = jwt.sign(
-        { userId: matchingUser._id },
-        process.env.JWT_SECRET_KEY,
-        { expiresIn: "1h" }
-      );
-  
-      console.log("Login successful! Token generated:", token);  // ✅ Log token
-      return res.status(200).json({ message: "You have been Successfully Logged in!", token });
-  
-    } catch (err) {
-      console.error("Error during login:", err);  // ✅ Log errors
-      return res.status(500).json({ message: "Internal server error", error: err.message });
+        res.status(200).json({ message: "OTP verified successfully. User updated!", user });
+    } catch (error) {
+        console.error("❌ Error verifying OTP:", error);
+        res.status(500).json({ message: "Error verifying OTP", error: error.message });
     }
 };
 
+/**
+ * ✅ Get All Users (Admin Route)
+ */
 exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await UserModel.find();
-    res.status(200).json({ message: "The List of Users", users });
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({ message: "Error fetching users", error: error.message });
-  }
+    try {
+        const users = await UserModel.find({}, "-password");
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("❌ Error fetching users:", error);
+        res.status(500).json({ message: "Error fetching users", error: error.message });
+    }
 };
 
-exports.getAllUsersById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const user = await UserModel.find({ _id: id });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+/**
+ * ✅ Get User by ID
+ */
+exports.getUserById = async (req, res) => {
+    try {
+        const user = await UserModel.findById(req.params.id, "-password");
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("❌ Error fetching user:", error);
+        res.status(500).json({ message: "Error fetching user", error: error.message });
     }
-    res.status(200).json({ massage: "Details of a single user", user });
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    res.status(500).json({ message: "Error fetching user", error: error.message });
-  }
 };
