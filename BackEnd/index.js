@@ -1,6 +1,8 @@
 const express = require("express");
 const { connectToDB } = require("./config/db");
 const authRouter = require("./routes/authRoutes");
+const addressRouter = require("./routes/addressRoutes");
+const ProfileRouter = require("./routes/myprofileRoutes");
 const cors = require("cors");
 require("dotenv").config();
 
@@ -48,7 +50,8 @@ app.use(express.urlencoded({ extended: false }));
 // app.use(cors());   //to allow cross origin requests from the frontend to the backend server
 
 app.use("/auth", authRouter);
-
+app.use("/address", addressRouter); 
+app.use("/profile", ProfileRouter);
 
 
 // Test endpoint to verify server is alive
