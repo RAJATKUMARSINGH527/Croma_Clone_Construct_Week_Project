@@ -26,7 +26,7 @@ exports.createAddress = async (req, res) => {
   }
 };
 
-// Get all addresses
+
 exports.getAllAddresses = async (req, res) => {
   try {
     // Fetch all addresses sorted by most recent
