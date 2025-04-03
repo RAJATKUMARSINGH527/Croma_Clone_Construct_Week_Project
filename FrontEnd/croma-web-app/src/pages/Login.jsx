@@ -96,6 +96,7 @@ export default function Login() {
         });
         const data = await response.json();
         if (response.ok) {
+          localStorage.setItem("isVerified", "true"); // Store verification status
           navigate("/");
         } else {
           setError(data.message || "OTP verification failed");

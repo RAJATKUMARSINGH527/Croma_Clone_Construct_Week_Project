@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, User, ShoppingCart, Menu, X, ChevronRight, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import NavbarUserDropdown from './NavbarUserDropdown'; 
+
 
 export default function CromaNavbar() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,9 +130,10 @@ export default function CromaNavbar() {
             </div>
             
             {/* User Account */}
-            <Link to="/login" aria-label="User account">
+            {/* <Link to="/login" aria-label="User account">
               <User size={20} />
-            </Link>
+            </Link> */}
+            <NavbarUserDropdown />
             
             {/* Shopping Cart */}
             <Link to="/cart" className="relative" aria-label="Shopping cart">
